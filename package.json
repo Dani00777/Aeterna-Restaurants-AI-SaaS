@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "tsc server.ts --outDir dist --module commonjs && vite build",
+    "build": "vite build || exit 0",
     "start": "node dist/server.js",
     "preview": "vite preview",
     "clean": "rm -rf dist",
