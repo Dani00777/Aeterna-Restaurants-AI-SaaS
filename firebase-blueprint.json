@@ -1,0 +1,154 @@
+{
+  "entities": {
+    "Restaurant": {
+      "title": "Restaurant",
+      "description": "Root configuration for a restaurant tenant.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Restaurant name" },
+        "ownerUid": { "type": "string", "description": "Firebase Auth UID of the owner" },
+        "phone": { "type": "string", "description": "Contact phone" },
+        "subscriptionPlan": { "type": "string", "enum": ["trial", "pro", "enterprise"] },
+        "subscriptionStatus": { "type": "string", "enum": ["active", "expired", "cancelled"] },
+        "trialEndDate": { "type": "string", "format": "date-time", "description": "ISO 8601 date string" },
+        "isApproved": { "type": "boolean", "description": "Admin approval status" }
+      },
+      "required": ["name", "ownerUid", "subscriptionStatus"]
+    },
+    "MenuItem": {
+      "title": "Menu Item",
+      "description": "An item available on the restaurant's menu.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "isAvailable": { "type": "boolean" }
+      },
+      "required": ["name", "price", "category", "isAvailable"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "A customer order.",
+      "type": "object",
+      "properties": {
+        "customerId": { "type": "string", "description": "Customer phone number" },
+        "items": { 
+          "type": "array",
+          "description": "List of ordered items with quantities"
+        },
+        "subtotal": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "preparing", "ready", "delivered", "completed"] },
+        "orderType": { "type": "string", "enum": ["Indoor", "Delivery"] },
+        "tableNumber": { "type": "string" },
+        "chatHistory": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "claimedBy": { "type": "string" },
+        "claimedAt": { "type": "string", "format": "date-time" },
+        "prepTimeMinutes": { "type": "number" },
+        "urgentAlert": { "type": "string" }
+      },
+      "required": ["customerId", "items", "subtotal", "status", "orderType", "createdAt"]
+    },
+    "Staff": {
+      "title": "Staff Member",
+      "description": "Chef or Rider credentials and profile.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "username": { "type": "string" },
+        "password": { "type": "string", "description": "Hashed or plain (per blueprint logic)" },
+        "role": { "type": "string", "enum": ["Chef", "Rider"] },
+        "phone": { "type": "string" },
+        "experience": { "type": "string" },
+        "photo": { "type": "string", "format": "uri" },
+        "currentLocation": { "type": "object", "description": "GeoPoint representation" }
+      },
+      "required": ["name", "username", "password", "role"]
+    },
+    "Ingredient": {
+      "title": "Ingredient",
+      "description": "Inventory item.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "unit": { "type": "string", "enum": ["kg", "pcs", "ltr", "gm"] },
+        "quantityInStock": { "type": "number" },
+        "lowStockThreshold": { "type": "number" }
+      },
+      "required": ["name", "unit", "quantityInStock"]
+    },
+    "Recipe": {
+      "title": "Recipe",
+      "description": "Links a menu item to its ingredients.",
+      "type": "object",
+      "properties": {
+        "menuItemId": { "type": "string" },
+        "ingredientId": { "type": "string" },
+        "quantityUsed": { "type": "number" }
+      },
+      "required": ["menuItemId", "ingredientId", "quantityUsed"]
+    },
+    "UserMapping": {
+      "title": "User Mapping",
+      "description": "Maps a Firebase UID to a Restaurant ID.",
+      "type": "object",
+      "properties": {
+        "restaurantId": { "type": "string" },
+        "role": { "type": "string", "enum": ["owner"] }
+      },
+      "required": ["restaurantId", "role"]
+    },
+    "StaffMessage": {
+      "title": "Staff Message",
+      "description": "Internal communication between staff and owner.",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderRole": { "type": "string", "enum": ["owner", "Chef", "Rider"] },
+        "receiverId": { "type": "string", "description": "'all' or specific staffId/ownerUid" },
+        "threadId": { "type": "string", "description": "For private chats: [id1, id2].sort().join('_')" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["senderId", "senderName", "senderRole", "receiverId", "text", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/restaurants/{restaurantId}": {
+      "schema": "Restaurant",
+      "description": "Restaurant root document"
+    },
+    "/restaurants/{restaurantId}/menu_items/{itemId}": {
+      "schema": "MenuItem",
+      "description": "Menu items for the restaurant"
+    },
+    "/restaurants/{restaurantId}/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Orders for the restaurant"
+    },
+    "/restaurants/{restaurantId}/staff/{staffId}": {
+      "schema": "Staff",
+      "description": "Staff members (Chefs/Riders)"
+    },
+    "/restaurants/{restaurantId}/ingredients/{ingredientId}": {
+      "schema": "Ingredient",
+      "description": "Inventory ingredients"
+    },
+    "/restaurants/{restaurantId}/recipes/{recipeId}": {
+      "schema": "Recipe",
+      "description": "Recipe mappings"
+    },
+    "/restaurants/{restaurantId}/staffMessages/{messageId}": {
+      "schema": "StaffMessage",
+      "description": "Internal staff chat messages"
+    },
+    "/users/{uid}": {
+      "schema": "UserMapping",
+      "description": "Top-level user to restaurant mapping"
+    }
+  }
+}

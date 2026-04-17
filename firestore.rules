@@ -1,0 +1,135 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: /users/{uid}
+// Fields:
+//   - restaurantId: string (required)
+//   - role: string (required, 'owner')
+//
+// Collection: /restaurants/{restaurantId}
+// Fields:
+//   - name: string (required)
+//   - ownerUid: string (required)
+//   - subscriptionStatus: string (required)
+//   ...
+//
+// Collection: /restaurants/{restaurantId}/staff/{staffId}
+// Fields:
+//   - name: string (required)
+//   - username: string (required)
+//   - password: string (required)
+//   - role: string (required)
+//
+// Collection: /restaurants/{restaurantId}/orders/{orderId}
+// Fields:
+//   - customerId: string (required)
+//   - status: string (required)
+//   - items: list (required)
+//   ...
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(restaurantId) {
+      let restaurantDoc = get(/databases/$(database)/documents/restaurants/$(restaurantId));
+      return isAuthenticated() && restaurantDoc.data.ownerUid == request.auth.uid;
+    }
+
+    function isStaff(restaurantId) {
+      // This is a simplified check. In a real app, we might use custom claims or a more complex lookup.
+      // For this blueprint, we'll assume staff are authenticated anonymously first.
+      return isAuthenticated(); 
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // User to Restaurant Mapping
+    match /users/{uid} {
+      allow read, write: if request.auth.uid == uid;
+    }
+
+    // Owner Login Handshake
+    match /owners/{ownerId} {
+      allow read: if true;
+      allow create: if true; // Allow registration
+      allow update, delete: if false; // For now
+    }
+
+    // Restaurant Root
+    match /restaurants/{restaurantId} {
+      allow read: if true; // Publicly readable for customer info
+      allow create: if true; // Allow registration to create restaurant
+      allow update, delete: if isOwner(restaurantId);
+      
+      // Sub-collections
+      
+      match /menu_items/{itemId} {
+        allow read: if true;
+        allow write: if isOwner(restaurantId);
+      }
+
+      match /orders/{orderId} {
+        // Allow anyone to create (customers)
+        allow create: if true;
+        // Allow staff/owner to read/update
+        allow read, update, write: if isAuthenticated();
+      }
+
+      match /staff/{staffId} {
+        // Staff login handshake: allow reading by username
+        allow read: if true; 
+        allow write: if isOwner(restaurantId);
+      }
+
+      match /ingredients/{ingredientId} {
+        allow read, write: if isOwner(restaurantId) || isStaff(restaurantId);
+      }
+
+      match /recipes/{recipeId} {
+        allow read: if isOwner(restaurantId) || isStaff(restaurantId);
+        allow write: if isOwner(restaurantId);
+      }
+      
+      match /settings/{settingId} {
+        allow read: if true;
+        allow write: if isOwner(restaurantId);
+      }
+      
+      match /training/{trainingId} {
+        allow read, write: if isOwner(restaurantId);
+      }
+
+      match /staffMessages/{messageId} {
+        allow read, create, delete: if isOwner(restaurantId) || isStaff(restaurantId);
+        allow update: if false;
+      }
+    }
+
+    // Root-level Orders (Deprecated - moving to nested for consistency)
+    match /orders/{orderId} {
+      allow read, write: if true; 
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "projectId": "aeterna-ai",
+  "appId": "1:935916691830:web:8869578cd8c7fbdda29a57",
+  "apiKey": "AIzaSyDVm-N4MoLQLjyF-o1hfbIubi-xegpE8sI",
+  "authDomain": "aeterna-ai.firebaseapp.com",
+  "storageBucket": "aeterna-ai.firebasestorage.app",
+  "messagingSenderId": "935916691830",
+  "firestoreDatabaseId": "(default)"
+}

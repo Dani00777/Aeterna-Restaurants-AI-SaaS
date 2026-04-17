@@ -1,0 +1,6 @@
+{
+  "name": "Aeterna AI",
+  "description": "Multi-tenant AI Restaurant Management System with WhatsApp-style AI ordering, Kitchen Display System (KDS), and real-time inventory tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
