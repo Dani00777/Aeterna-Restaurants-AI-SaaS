@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { MenuItem, Restaurant } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: import.meta.env.GEMINI_API_KEY });
 
 const SYSTEM_PROMPT = () => `You are Aeterna, a polite and efficient Restaurant Manager.
 When the user asks to see the menu or view the menu items, simply reply with a helpful greeting and include the exact tag [SHOW_MENU_BUTTON] in your response. DO NOT list the menu items as text if they ask for the menu.
@@ -17,7 +17,7 @@ export const getAIResponse = async (
   history: { role: 'user' | 'model'; text: string }[],
   tableNumber?: string
 ) => {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = import.meta.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("Gemini API Key is missing.");
   }
