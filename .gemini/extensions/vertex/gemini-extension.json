@@ -1,0 +1,10 @@
+{
+  "name": "vertex",
+  "version": "0.2.0",
+  "mcpServers": {
+    "VertexMcpServer": {
+      "command": "${extensionPath}/run.sh",
+      "args": []
+    }
+  }
+}
